@@ -49,7 +49,7 @@
       <ProgramDataBaseFileName>$(ProjectDir)$(ProjectName)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(LIBS_HOME)\libx64;$(CUDA_PATH)\lib\x64;$(LIBS_HOME)\include\clBlas\lib64;$(LIBS_HOME)\include\Lapacke\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBS_HOME)\lib;$(CUDA_PATH)\lib\x64;$(LIBS_HOME)\include\clBlas\lib64;$(LIBS_HOME)\include\Lapacke\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>pthreadVC2.lib;clBLAS.lib;OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
