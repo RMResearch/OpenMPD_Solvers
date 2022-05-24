@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{43C4C52D-7E6A-46AD-A707-4D2D2590F03F}</ProjectGuid>
+    <RootNamespace>GSPAT_Solver</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)</OutDir>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>
+      </SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GSPAT_NONCLIENT_BUILD;HAVE_STRUCT_TIMESPEC;_MBCS;_CRT_SECURE_NO_WARNINGS;HAVE_LAPACK_CONFIG_H;LAPACK_COMPLEX_STRUCTURE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)GSPAT_Solver;$(ProjectDir)\include;$(ProjectDir);$(LIBS_HOME)\include;$(CUDA_PATH)\include;$(LIBS_HOME)\include\Lapacke;$(LIBS_HOME)\include\clBlas\include;$(SolutionDir)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ProgramDataBaseFileName>$(ProjectDir)$(ProjectName)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(LIBS_HOME)\libx64;$(CUDA_PATH)\lib\x64;$(LIBS_HOME)\include\clBlas\lib64;$(LIBS_HOME)\include\Lapacke\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>pthreadVC2.lib;clBLAS.lib;OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>  XCOPY /F /Y  $(SolutionDir)$(Platform)\$(ProjectName).dll  $(LIBS_HOME)\bin\$(Platform)\
+  XCOPY /F /Y  $(ProjectDir)src\hologramSolver_V4.cl  $(LIBS_HOME)\bin\$(Platform)\
+  XCOPY /F /Y  $(SolutionDir)$(Platform)\$(ProjectName).lib  $(LIBS_HOME)\lib\$(ProjectName)\
+
+  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\GSPAT_Solver_Prerequisites.h  $(LIBS_HOME)\include\GS_PAT\
+  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\GSPAT_Solver.h  $(LIBS_HOME)\include\GS_PAT\
+  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\GSPAT_Solution.h  $(LIBS_HOME)\include\GS_PAT\
+  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\OpenCLSolverImpl_Interoperability.h  $(LIBS_HOME)\include\GS_PAT\
+
+  XCOPY /F /Y  $(ProjectDir)include\GSPAT_SolverV4.h  $(LIBS_HOME)\include\$(ProjectName)\
+  XCOPY /F /Y  $(ProjectDir)include\GSPATV4_CWrapper.h  $(LIBS_HOME)\include\$(ProjectName)\
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\GSPAT_Solver\GSPAT_Solution.h" />
+    <ClInclude Include="..\GSPAT_Solver\GSPAT_Solver.h" />
+    <ClInclude Include="..\GSPAT_Solver\GSPAT_Solver_Prerequisites.h" />
+    <ClInclude Include="..\GSPAT_Solver\OpenCLSolverImpl_Interoperability.h" />
+    <ClInclude Include="..\Helper\OpenCLUtilityFunctions.h" />
+    <ClInclude Include="include\GSPATV4_CWrapper.h" />
+    <ClInclude Include="include\GSPAT_SolverV4.h" />
+    <ClInclude Include="src\HologramProfiler.h" />
+    <ClInclude Include="src\HologramSolverCL.h" />
+    <ClInclude Include="src\HologramSolution.h" />
+    <ClInclude Include="src\SolutionPool.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Helper\OpenCLUtilityFunctions.cpp" />
+    <ClCompile Include="..\Helper\TimeFunctions.cpp" />
+    <ClCompile Include="src\GSPAT_SolverV4.cpp" />
+    <ClCompile Include="src\GSPATV4_CWrapper.cpp" />
+    <ClCompile Include="src\HologramProfiler.cpp" />
+    <ClCompile Include="src\HologramSolution.cpp" />
+    <ClCompile Include="src\HologramSolverCL.cpp" />
+    <ClCompile Include="src\SolutionPool.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\hologramSolver_V4.cl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="simpleGSPATCpp.cpp" />
+    <ClCompile Include="..\Helper\GorKovComputation.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Helper\TimeFunctions.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Helper\VisualizePlane.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Helper">
+      <UniqueIdentifier>{5880c36b-7884-42a6-a1cb-0978a3e2b227}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Helper\GorKovComputation.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\HelperMethods.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\TimeFunctions.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\VisualizePlane.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

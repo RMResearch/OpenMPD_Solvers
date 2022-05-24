@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{a292e5d7-2bb7-4b86-b741-6de963a91f00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{6193dae7-c17b-468f-a069-440d10230fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GSPAT_Solver%28commonInterface%29">
+      <UniqueIdentifier>{5e6628ec-84c0-4221-925a-0074e044a910}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Helper">
+      <UniqueIdentifier>{2463e253-414b-46a6-bec9-e8653a6724ab}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\HologramProfiler.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HologramSolverCL.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HologramSolution.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SolutionPool.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GSPAT_Solver\GSPAT_Solution.h">
+      <Filter>GSPAT_Solver%28commonInterface%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GSPAT_Solver\GSPAT_Solver.h">
+      <Filter>GSPAT_Solver%28commonInterface%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GSPAT_Solver\GSPAT_Solver_Prerequisites.h">
+      <Filter>GSPAT_Solver%28commonInterface%29</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GSPAT_Solver\OpenCLSolverImpl_Interoperability.h">
+      <Filter>GSPAT_Solver%28commonInterface%29</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GSPAT_SolverV2.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GSPATV2_CWrapper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\OpenCLUtilityFunctions.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\HologramSolution.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HologramSolverCL.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HologramProfiler.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SolutionPool.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Helper\TimeFunctions.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GSPAT_SolverV2.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GSPATV2_CWrapper.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Helper\OpenCLUtilityFunctions.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\hologramSolver_V2.cl">
+      <Filter>src</Filter>
+    </None>
+  </ItemGroup>
+</Project>

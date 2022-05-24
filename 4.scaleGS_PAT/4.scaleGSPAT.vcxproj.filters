@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Helper\GorKovComputation.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Helper\TimeFunctions.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Helper\VisualizePlane.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="scaleGSPAT.cpp" />
+    <ClCompile Include="visualizeGS_PAT_Field.cpp" />
+    <ClCompile Include="ForcesAroundTrap(Viktorija).cpp" />
+    <ClCompile Include="collectAllLocalForcesDataForMatlab.cpp" />
+    <ClCompile Include="amplitudesAlongX.cpp" />
+    <ClCompile Include="Gor%27kov plots.cpp">
+      <Filter>Figure3</Filter>
+    </ClCompile>
+    <ClCompile Include="Gor%27kov slices.cpp">
+      <Filter>Figure3</Filter>
+    </ClCompile>
+    <ClCompile Include="Sinusoidal slices.cpp">
+      <Filter>Figure3</Filter>
+    </ClCompile>
+    <ClCompile Include="Spring slices.cpp">
+      <Filter>Figure3</Filter>
+    </ClCompile>
+    <ClCompile Include="OurModel slices.cpp">
+      <Filter>Figure3</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Helper\GorKovComputation.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\HelperMethods.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\TimeFunctions.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Helper\VisualizePlane.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="TrapForceModel\FileNameGenerators.h">
+      <Filter>TrapForceModel</Filter>
+    </ClInclude>
+    <ClInclude Include="TrapForceModel\FindTrapCentre.h">
+      <Filter>TrapForceModel</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Helper">
+      <UniqueIdentifier>{064a9c55-8e84-41eb-9aad-d9ce3afbfc05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TrapForceModel">
+      <UniqueIdentifier>{f7b1c268-4bf4-4514-9a24-9777274e32ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Figure3">
+      <UniqueIdentifier>{da9cac27-2a34-4904-898a-355cb21da154}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
