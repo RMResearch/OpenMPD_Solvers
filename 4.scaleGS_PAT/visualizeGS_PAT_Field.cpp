@@ -10,7 +10,6 @@ void print(const char* str) {
 }
 
 
-
 void application(void) {
 	const int numBoards = 2;
 	const int numTransducersPerBoard = 256;
