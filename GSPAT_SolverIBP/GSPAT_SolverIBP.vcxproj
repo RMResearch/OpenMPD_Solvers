@@ -53,18 +53,17 @@
       <AdditionalDependencies>pthreadVC2.lib;clBLAS.lib;OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>  XCOPY /F /Y  $(SolutionDir)$(Platform)\$(ProjectName).dll  $(LIBS_HOME)\bin\$(Platform)\
-  XCOPY /F /Y  $(ProjectDir)src\hologramSolver_IBP.cl  $(LIBS_HOME)\bin\$(Platform)\
-  XCOPY /F /Y  $(SolutionDir)$(Platform)\$(ProjectName).lib  $(LIBS_HOME)\lib\$(ProjectName)\
+      <Command>XCOPY /F /Y "$(SolutionDir)$(Platform)\$(ProjectName).dll" "$(LIBS_HOME)\bin\$(Platform)\"
+XCOPY /F /Y "$(ProjectDir)src\hologramSolver_IBP.cl" "$(LIBS_HOME)\bin\$(Platform)\"
+XCOPY /F /Y "$(SolutionDir)$(Platform)\$(ProjectName).lib" "$(LIBS_HOME)\lib\$(ProjectName)\"
 
-  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\GSPAT_Solver_Prerequisites.h  $(LIBS_HOME)\include\GS_PAT\
-  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\GSPAT_Solver.h  $(LIBS_HOME)\include\GS_PAT\
-  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\GSPAT_Solution.h  $(LIBS_HOME)\include\GS_PAT\
-  XCOPY /F /Y  $(SolutionDir)GSPAT_Solver\OpenCLSolverImpl_Interoperability.h  $(LIBS_HOME)\include\GS_PAT\
+XCOPY /F /Y "$(SolutionDir)GSPAT_Solver\GSPAT_Solver_Prerequisites.h" "$(LIBS_HOME)\include\GS_PAT\"
+XCOPY /F /Y "$(SolutionDir)GSPAT_Solver\GSPAT_Solver.h" "$(LIBS_HOME)\include\GS_PAT\"
+XCOPY /F /Y "$(SolutionDir)GSPAT_Solver\GSPAT_Solution.h" "$(LIBS_HOME)\include\GS_PAT\"
+XCOPY /F /Y "$(SolutionDir)GSPAT_Solver\OpenCLSolverImpl_Interoperability.h" "$(LIBS_HOME)\include\GS_PAT\"
 
-  XCOPY /F /Y  $(ProjectDir)include\GSPAT_SolverIBP.h  $(LIBS_HOME)\include\$(ProjectName)\
-  XCOPY /F /Y  $(ProjectDir)include\GSPAT_IBP_CWrapper.h  $(LIBS_HOME)\include\$(ProjectName)\
-</Command>
+XCOPY /F /Y "$(ProjectDir)include\GSPAT_SolverIBP.h" "$(LIBS_HOME)\include\$(ProjectName)\"
+XCOPY /F /Y "$(ProjectDir)include\GSPAT_IBP_CWrapper.h" "$(LIBS_HOME)\include\$(ProjectName)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
