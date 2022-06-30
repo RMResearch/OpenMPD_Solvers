@@ -10,15 +10,15 @@ void print(const char* str) {
 
 
 void application(void) {
-	const int numBoards = 4;
+	const int numBoards = 8;
 	const int numTransducersPerBoard = 256;
-	const size_t numGeometries = 1;
+	const size_t numGeometries = 32;
 	const size_t numPoints = 1;
 	//Create driver and connect to it
 	AsierInho_V2::RegisterPrintFuncs(print, print, print);	
 	AsierInho_V2::AsierInhoBoard_V2* driver= AsierInho_V2::createAsierInho();
-	int boardIDs[] = { 1, 2,3,4 };
-	float matBoardToWorld[64] = {/*bottom-left*/
+	int boardIDs[] = { 1, 2,3,4,5,6,7,8 };
+	float matBoardToWorld[128] = {/*bottom-left*/
 								1, 0, 0, -0.08f,
 								0, 1, 0, 0,
 								0, 0, 1, 0,
@@ -35,6 +35,26 @@ void application(void) {
 								0, 0, 0, 1,	
 								/*top-right*/
 								-1, 0, 0, 0.08f,
+								0, 1, 0, 0,
+								0, 0,-1, 0.2388f,
+								0, 0, 0, 1,	
+								/*bottom-left*/
+								1, 0, 0, -0.16f,
+								0, 1, 0, 0,
+								0, 0, 1, 0,
+								0, 0, 0, 1,	
+								/*top-left*/
+								-1, 0, 0, -0.16f,
+								0, 1, 0, 0,
+								0, 0,-1, 0.2388f,
+								0, 0, 0, 1,	
+								/*bottom-right*/
+								1, 0, 0, 0.16f,
+								0, 1, 0, 0,
+								0, 0, 1, 0,
+								0, 0, 0, 1,	
+								/*top-right*/
+								-1, 0, 0, 0.16f,
 								0, 1, 0, 0,
 								0, 0,-1, 0.2388f,
 								0, 0, 0, 1,	
@@ -76,7 +96,7 @@ void application(void) {
 	driver->updateMessage(msg);
 	//c. Visualize field
 	{
-		float A[] = { -0.2f, 0, 0.2388f / 2 + 0.1f }, B[] = { 0.2f, 0, 0.2388f / 2 + 0.1f }, C[] = { -0.2f, 0, 0.2388f / 2 - 0.1f };
+		float A[] = { -0.24f, 0, 0.2388f / 2 + 0.12f }, B[] = { 0.24f, 0, 0.2388f / 2 + 0.12f }, C[] = { -0.24f, 0, 0.2388f / 2 - 0.12f };
 		int imgRes[] = { 2*128,128 };
 		VisualizePlane::visualize(A,B,C, imgRes , solution->finalHologramReIm(), numBoards*numTransducersPerBoard, transducerPositions);
 	}

@@ -11,6 +11,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <OpenCLSolverImpl_Interoperability.h>
+#define NUM_TRANSDUCERS_PER_GROUP 1  
 
 
 char consoleLine[512];
@@ -141,7 +142,7 @@ void HologramSolverCL::initializeOpenCL(){
 	this->devices = (cl_device_id*)malloc(num_devices*sizeof(cl_device_id));
 	clGetDeviceIDs( this->platformUsed, CL_DEVICE_TYPE_GPU, num_devices, this->devices, NULL);
 	this->deviceUsed = this->devices[num_devices-1];
-
+	clGetDeviceInfo(this->deviceUsed, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, NULL);
 	// Creates the OpenCL context, queue, event and program.
 	this->context = clCreateContext(NULL, 1, &(this->deviceUsed), NULL, NULL, NULL);
 	this->queue = clCreateCommandQueue(this->context,  this->deviceUsed, 0, NULL);
@@ -345,8 +346,10 @@ void HologramSolverCL::updateCLBuffers(HologramSolution * hs)
 void HologramSolverCL::computeFandB(HologramSolution* solution) {
 	cl_int err;
 	//B. Run the kernel
-	size_t global_size[3] = {(size_t) numTransducers, 1,(size_t) solution->numPoints*solution->numGeometries};
-	size_t local_size[3] =  {(size_t) numTransducers, 1, 1};
+	size_t global_size[3] = {(size_t) numTransducers/NUM_TRANSDUCERS_PER_GROUP, 1,(size_t) solution->numPoints*solution->numGeometries};
+	size_t local_size[3] =  {(size_t) numTransducers/NUM_TRANSDUCERS_PER_GROUP, 1, 1};
+	//size_t global_size[3] = {(size_t) 1024, 1,(size_t) solution->numPoints*solution->numGeometries};
+	//size_t local_size[3] =  {(size_t) 1024, 1, 1};
 	//0. Setup inputs for the kernell (do once)
 	err = clSetKernelArg(fillAllPointHologramsKernel, 0, sizeof(cl_mem), &(transducerPositions));
 	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 0"); return ; }
@@ -497,7 +500,8 @@ void HologramSolverCL::computeActivation(HologramSolution* solution){
 	cl_int err;
 	//B. Build hologram by adding point holograms (and applying phase to each point)
 	{
-		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)solution->numTransducers,1,1 };
+		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)(solution->numTransducers<= maxWorkGroupSize? solution->numTransducers : maxWorkGroupSize),1,1 };
+		//size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { maxWorkGroupSize,1,1 };
 		size_t N = solution->numTransducers*solution->numGeometries;
 		err = clSetKernelArg(addHologramsKernel, 0, sizeof(int), &(solution->numPoints));
 		if (err < 0) { sprintf(consoleLine,"GSPAT: computeActivation::Couldn't set kernel argument 0");GSPAT_V2::printWarning_GSPAT(consoleLine); return; }
@@ -526,7 +530,8 @@ void HologramSolverCL::computeActivation(HologramSolution* solution){
 void HologramSolverCL::discretise(HologramSolution* solution) {
 	cl_int err;
 	{
-		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)numTransducers,1,1 };
+		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = {(size_t)(solution->numTransducers<= maxWorkGroupSize? solution->numTransducers : maxWorkGroupSize),1,1 };
+		//size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { maxWorkGroupSize,1,1 };
 		float solvePhaseOnly = solution->phaseOnly ? 1.0f : 0.0f;
 		err = clSetKernelArg(discretiseKernel, 0, sizeof(int), &numDiscreteLevels);
 		if (err < 0) { sprintf(consoleLine,"GSPAT: discretise::Couldn't set kernel argument 0"); GSPAT_V2::printWarning_GSPAT(consoleLine);return; }

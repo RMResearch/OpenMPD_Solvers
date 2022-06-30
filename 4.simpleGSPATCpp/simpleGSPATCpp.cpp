@@ -22,9 +22,9 @@ void application(void) {
 	AsierInho::RegisterPrintFuncs(print, print, print);	
 	AsierInho::AsierInhoBoard* driver= AsierInho::createAsierInho();
 	//Create solver:
-	GSPAT_IBP::RegisterPrintFuncs(print, print, print);
-	GSPAT::Solver* solver = GSPAT_IBP::createSolver(512);//Number of transducers used (two boards of 16x16)
-	if(!driver->connect(AsierInho::BensDesign, 32, 30))	//Device IDs to connect to
+	GSPAT_V2::RegisterPrintFuncs(print, print, print);
+	GSPAT::Solver* solver = GSPAT_V2::createSolver(512);//Number of transducers used (two boards of 16x16)
+	if(!driver->connect(AsierInho::BensDesign, 18, 7))	//Device IDs to connect to
 		printf("Failed to connect to board.");
 	float transducerPositions[512 * 3], amplitudeAdjust[512];
 	int mappings[512], phaseDelays[512], numDiscreteLevels;

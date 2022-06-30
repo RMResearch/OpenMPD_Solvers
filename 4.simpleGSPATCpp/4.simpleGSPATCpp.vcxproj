@@ -14,7 +14,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4EF4BAD6-9B2D-4776-86C0-6F5BF8B66968}</ProjectGuid>
     <RootNamespace>OpenGLFrameworkWin32</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
     <ProjectName>4.simpleGSPATCpp</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -22,7 +22,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -55,7 +55,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(LIBS_HOME)\lib;$(LIBS_HOME)\lib\GSPAT_SolverNaive;$(LIBS_HOME)\lib\GSPAT_SolverIBP;$(LIBS_HOME)\lib\GSPAT_SolverV2;$(LIBS_HOME)\lib\GSPAT_SolverV3;$(LIBS_HOME)\lib\GSPAT_SolverV4;$(LIBS_HOME)\lib\AsierInho;$(LIBS_HOME)\lib\BeadDetector;$(LIBS_HOME)\include\opencv340\build\x64\vc15\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>AsierInho.lib;GSPAT_SolverNaive.lib;GSPAT_SolverIBP.lib;GSPAT_SolverV2.lib;GSPAT_SolverV3.lib;GSPAT_SolverV4.lib;pthreadVC2.lib;opencv_world340d.lib</AdditionalDependencies>
+      <AdditionalDependencies>AsierInho.lib;GSPAT_SolverNaive.lib;GSPAT_SolverIBP.lib;GSPAT_SolverV2.lib;GSPAT_SolverV3.lib;GSPAT_SolverV4.lib;pthreadVC2.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
       <SubSystem>Console</SubSystem>
     </Link>

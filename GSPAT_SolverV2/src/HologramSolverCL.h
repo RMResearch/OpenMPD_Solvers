@@ -54,6 +54,7 @@ private:
 	int boardSize[2];
 	int numTransducers;
 	int numDiscreteLevels;
+	size_t maxWorkGroupSize;
 	float initialGuess[2*HologramSolution::MAX_POINTS*HologramSolution::MAX_GEOMETRIES];	
 	bool configured;
 	//OpenCL variables:

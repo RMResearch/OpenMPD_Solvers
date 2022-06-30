@@ -12,16 +12,16 @@ void print(const char* str) {
 }
 
 void application(void) {
-	const size_t numPoints = 8; //Change this if you want (but make sure to change also each point's position )
+	const size_t numPoints = 1; //Change this if you want (but make sure to change also each point's position )
 	const size_t numGeometries = 32;
 	//Create driver and connect to it
 	AsierInho_V2::RegisterPrintFuncs(print, print, print);	
 	AsierInho_V2::AsierInhoBoard_V2* driver= AsierInho_V2::createAsierInho();
 	//Create solver:
-	GSPAT_IBP::RegisterPrintFuncs(print, print, print);
-	GSPAT::Solver* solver = GSPAT_IBP::createSolver(512);//Number of transducers used (two boards of 16x16)
+	GSPAT_V2::RegisterPrintFuncs(print, print, print);
+	GSPAT::Solver* solver = GSPAT_V2::createSolver(512);//Number of transducers used (two boards of 16x16)
 	//Connect ot the driver (configured for top-bottom manually) - See 7.simpleGSPATC_AsierInhoV2 to see how to do this automatically.
-	int boardIDs[] = { 4, 29 };
+	int boardIDs[] = {  61 , 60 };
 	float matBoardToWorld[32] = {/*bottom*/
 								1, 0, 0, 0,
 								0, 1, 0, 0,
