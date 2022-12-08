@@ -42,10 +42,10 @@
     <ClInclude Include="..\Helper\OpenCLUtilityFunctions.h">
       <Filter>Helper</Filter>
     </ClInclude>
-    <ClInclude Include="include\GSPAT_SolverIBP.h">
+    <ClInclude Include="include\ScalePAT_Solver.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\GSPAT_IBP_CWrapper.h">
+    <ClInclude Include="include\ScalePAT_CWrapper.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,15 +68,15 @@
     <ClCompile Include="..\Helper\OpenCLUtilityFunctions.cpp">
       <Filter>Helper</Filter>
     </ClCompile>
-    <ClCompile Include="src\GSPAT_SolverIBP.cpp">
+    <ClCompile Include="src\ScalePat_CWrapper.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\GSPAT_IBP_CWrapper.cpp">
+    <ClCompile Include="src\ScalePAT_Solver.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\hologramSolver_IBP.cl">
+    <None Include="src\hologramSolver_Scale.cl">
       <Filter>src</Filter>
     </None>
   </ItemGroup>
