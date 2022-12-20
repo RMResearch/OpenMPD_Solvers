@@ -1,6 +1,6 @@
 //#define NUM_TRANSDUCERS 1024		//We will make this a compile-time argument.
 #define NUM_TRANSDUCERS_PER_GROUP 256 //TODO: Make this an argument.
-#define MAX_POINTS_PER_GEOMETRY 16
+#define MAX_POINTS_PER_GEOMETRY 8
 #define NUM_ITERATIONS 20
 #define PI 3.14159265359f
 #define K 726.379761f
@@ -13,6 +13,7 @@ __constant sampler_t sampleDirTexture = CLK_NORMALIZED_COORDS_TRUE |
 CLK_ADDRESS_NONE | CLK_FILTER_NEAREST; 
 
 __kernel void computeFandB(global float4* transducerPositionsWorld,
+	global float4* transducerNormals,
 	global float4* positions,
 	global float4* matrixG0,
 	global float4* matrixGN,
@@ -57,9 +58,11 @@ __kernel void computeFandB(global float4* transducerPositionsWorld,
 	float4 t_pos = transducerPositionsWorld[t_offset];
 	float4 transducerToPoint = p_pos - t_pos; 
 	float distance = native_sqrt(transducerToPoint.x*transducerToPoint.x + transducerToPoint.y*transducerToPoint.y + transducerToPoint.z*transducerToPoint.z);
-	//This computes cos_alpha ASSUMING transducer normal is (0,0,1); Divide by dist to make unitary vector (normalise). 
-	float cos_alpha = fabs((float)(transducerToPoint.z / distance));
-	
+	////This computes cos_alpha ASSUMING transducer normal is (0,0,1); Divide by dist to make unitary vector (normalise). 
+	//float cos_alpha = fabs((float)(transducerToPoint.z / distance));
+	float4 t_norm = transducerNormals[t_offset];
+	float cos_alpha = fabs((transducerToPoint.x * t_norm.x + transducerToPoint.y * t_norm.y + transducerToPoint.z * t_norm.z) / distance);
+
 	//DEBUG:
 	//float Re = cos(-K*distance);// distance; //cos(t_offset*PI/(1024));
 	//float Im = sin(-K*distance);// cos_alpha;
@@ -116,22 +119,20 @@ __kernel void solvePhases_Naive(
 	//Copy propagator value to this transducer, for each point. 
 	float2 _F_z_t[MAX_POINTS_PER_GEOMETRY]; 
 	for (int z = 0; z < numPoints; z++)
-		_F_z_t[z] = F[numPoints * geometry * NUM_TRANSDUCERS + z*NUM_TRANSDUCERS + transducer]* amplitudesPerPoint[numPoints * geometry + z];
+		_F_z_t[z] = F[numPoints * geometry * NUM_TRANSDUCERS + z*NUM_TRANSDUCERS + transducer];
 	//RETRIEVE FINAL SOLUTION
 	//1. Back propagate: 
 	float2 finalTransducerState= (float2)(0, 0);
 	for (int z = 0; z < numPoints; z++) {
 		finalTransducerState += _F_z_t[z];
 	}
-
 	//2. Constraint transducers amplitude and safe:
 	float transducerAmplitude = native_sqrt(finalTransducerState.x*finalTransducerState.x + finalTransducerState.y*finalTransducerState.y);
 	finalTransducerState /= transducerAmplitude;
 	finalHologram_ReIm[geometry*NUM_TRANSDUCERS + transducer] = finalTransducerState;
-	float topBoard = (float)(transducer >= 256);
-	finalHologram_Phases[geometry*NUM_TRANSDUCERS + transducer] = (atan2(finalTransducerState.y, finalTransducerState.x)+PI*topBoard);
-	finalHologram_Amplitudes[geometry*NUM_TRANSDUCERS + transducer] = fmin(transducerAmplitude, 1.f);
-	//finalHologram_Amplitudes[geometry*NUM_TRANSDUCERS + transducer] = 1;//PURE NAIVE
+	float signature = (float)(transducer < NUM_TRANSDUCERS_PER_GROUP) * PI;
+	finalHologram_Phases[geometry * NUM_TRANSDUCERS + transducer] = (atan2(finalTransducerState.y, finalTransducerState.x));// +signature;
+	finalHologram_Amplitudes[geometry*NUM_TRANSDUCERS + transducer] = 1;
 	
 	//DEBUG:
 	/*finalHologram_ReIm[geometry*NUM_TRANSDUCERS + transducer] = (float2)(transducer, geometry);

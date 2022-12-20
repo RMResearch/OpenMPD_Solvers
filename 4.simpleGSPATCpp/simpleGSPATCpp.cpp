@@ -26,15 +26,16 @@ void application(void) {
 	GSPAT::Solver* solver = GSPAT_IBP::createSolver(512);//Number of transducers used (two boards of 16x16)
 	if(!driver->connect(AsierInho::BensDesign, 32, 30))	//Device IDs to connect to
 		printf("Failed to connect to board.");
-	float transducerPositions[512 * 3], amplitudeAdjust[512];
+	float transducerPositions[512 * 3], transducerNormals[512 * 3], amplitudeAdjust[512];
 	int mappings[512], phaseDelays[512], numDiscreteLevels;
-	//driver->readAdjustments(mappings, phaseDelays);
 	driver->readParameters(transducerPositions, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
-	//DEBUG: Test removing noisy transducers (see "Examples/AsierInho/0.testTransducers").
-	/*for (int i = 0; i < 512; i++)
-		amplitudeAdjust[i] = 1.0f;*/
-	//END DEBUG
-	solver->setBoardConfig(transducerPositions, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
+	//Create normals manually (AsierInhoV1 does not support variable normals)
+	for (int i = 0; i < 512; i++) {
+		transducerNormals[3 * i + 0] = 0.0f;
+		transducerNormals[3 * i + 1] = 0.0f;
+		transducerNormals[3 * i + 2] = 1.0f;	
+	}
+	solver->setBoardConfig(transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
 	//Program: Create a trap and move it with the keyboard
 	static float radius = 0;// 0.02f;
 	float curPos[4 * numGeometries*numPoints];

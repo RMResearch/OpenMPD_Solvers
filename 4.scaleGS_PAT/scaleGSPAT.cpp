@@ -46,10 +46,10 @@ void application(void) {
 	GSPAT_V2::RegisterPrintFuncs(print, print, print);
 	GSPAT::Solver* solver = GSPAT_V2::createSolver(numBoards*numTransducersPerBoard);//Number of transducers used (two boards of 16x16)
 	//Configura the solver
-	float transducerPositions[numBoards*numTransducersPerBoard * 3], amplitudeAdjust[numBoards*numTransducersPerBoard];
+	float transducerPositions[numBoards*numTransducersPerBoard * 3], transducerNormals[512 * 3], amplitudeAdjust[numBoards*numTransducersPerBoard];
 	int mappings[numBoards*numTransducersPerBoard], phaseDelays[numBoards*numTransducersPerBoard], numDiscreteLevels;
-	driver->readParameters(transducerPositions, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
-	solver->setBoardConfig(transducerPositions, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
+	driver->readParameters(transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
+	solver->setBoardConfig(transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
 	//Program: Create a trap and visualize it
 	float curPos[4 * numPoints*numGeometries];
 	float amplitude[numPoints*numGeometries] ;

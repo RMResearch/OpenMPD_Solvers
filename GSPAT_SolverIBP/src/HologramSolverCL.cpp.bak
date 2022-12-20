@@ -390,7 +390,8 @@ void HologramSolverCL::solvePhases_IBP(HologramSolution* solution){
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 1"); GSPAT_IBP::printWarning_GSPAT(consoleLine); return; }
 	err = clSetKernelArg(solveIBPKernel, 2, sizeof(cl_mem), &solution->targetAmplitudes_CLBuffer);
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 2"); GSPAT_IBP::printWarning_GSPAT(consoleLine); return; }
-	err = clSetKernelArg(solveIBPKernel, 3, sizeof(cl_mem), &solution->singlePointField_CLBuffer);
+	//err = clSetKernelArg(solveIBPKernel, 3, sizeof(cl_mem), &solution->singlePointField_CLBuffer);
+	err = clSetKernelArg(solveIBPKernel, 3, sizeof(cl_mem), &solution->singlePointFieldNormalised_CLBuffer);
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 3"); GSPAT_IBP::printWarning_GSPAT(consoleLine); return; }
 	err = clSetKernelArg(solveIBPKernel, 4, sizeof(cl_mem), &solution->finalHologramPhases_CLBuffer);
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 4"); GSPAT_IBP::printWarning_GSPAT(consoleLine);return; }

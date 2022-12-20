@@ -14,7 +14,7 @@ enum GSPAT_Event {
 class HologramSolution : public Solution {
 		friend class HologramSolverCL;
 	protected:
-		static const int MAX_POINTS=16;
+		static const int MAX_POINTS=8;
 		static const int MAX_GEOMETRIES = 32;
 		//CPU Storage for parameters.
 		bool manualData; //Indicates if data has been manually provided by client or indirectly uploaded to Solution's buffers.

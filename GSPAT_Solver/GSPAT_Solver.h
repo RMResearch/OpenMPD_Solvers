@@ -21,7 +21,7 @@ namespace GSPAT {
 			Configures the parameters required to allow the solver to discretise and produce the final messages to send to the board.
 			(SEE EXPLANATION ABOUT THESE PARAMETERS IN METHOD:  Asierinho.h::readAdjustments())
 		*/
-		virtual void setBoardConfig(float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels = 128) = 0;
+		virtual void setBoardConfig(float* transducerPositions, float* transducerNormals, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels = 128) = 0;
 		/**
 			Generic struct to define other parameters explicit to the solver. 
 			A solver must only define this method if needed. In this case, the solver must define its own labels. 

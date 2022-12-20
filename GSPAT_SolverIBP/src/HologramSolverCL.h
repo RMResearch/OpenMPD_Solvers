@@ -20,7 +20,7 @@ public:
 	HologramSolverCL(int numTransducers);
 	~HologramSolverCL();
 	virtual void* getSolverContext();
-	virtual void setBoardConfig( float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels );
+	virtual void setBoardConfig( float* transducerPositions, float* transducerNormals, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels );
 	//virtual void setBoardConfig(char t_Ids[],	char t_phaseAdjust[], int numDiscreteLevels );
 	virtual Solution* createSolution(int numPoints, int numGeometries, bool phaseOnly, float* positions, float*amplitudes, float* matStarts, float* matEnds , GSPAT::MatrixAlignment a);
 	virtual Solution* createSolutionExternalData(int numPoints, int numGeometries, bool phaseOnly, GSPAT::MatrixAlignment a);
@@ -34,6 +34,7 @@ protected:
 	void initializeOpenCL();
 	void createDirectivityTexture();
 	void createTransducerPositionBuffer(float* transducerPositions);
+	void createTransducerNormalBuffer(float* transducerNormals);
 	void createSolutionPool();
 	/**
 		This method computes the directivity of our transducer as a function of the cosine 
@@ -91,7 +92,13 @@ private:
 		The current implementation is hardcoded for top-bottom arrangements of 512 transducers.
 	*/
 	cl_mem transducerPositions;	//rel							
-			
+
+	/**
+		Added by Ryuji
+		This allows you to arrange transducers in an arbitrary direction.
+	*/
+	cl_mem transducerNormals;
+
 	/**
 		solutionPool: Contains the pool of solutions to be reused by solver’s clients. 
 	*/

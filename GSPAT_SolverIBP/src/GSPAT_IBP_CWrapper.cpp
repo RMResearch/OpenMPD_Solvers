@@ -46,8 +46,8 @@ void GSPAT_IBP_CWrapper_destroySolver(GSPAT_Solver_Handler solver) {
 	delete target;		
 }
 //Wrapper Methods for GSPAT_Solver
-void GSPAT_IBP_CWrapper_setBoardConfig(GSPAT_Solver_Handler solver, float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels) {
-	((GSPAT::Solver*)solver)->setBoardConfig(transducerPositions,transducerToPINMap, phaseAdjust, amplitudeAdjust, numDiscreteLevels);
+void GSPAT_IBP_CWrapper_setBoardConfig(GSPAT_Solver_Handler solver, float* transducerPositions, float* transducerNormals, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels) {
+	((GSPAT::Solver*)solver)->setBoardConfig(transducerPositions, transducerNormals, transducerToPINMap, phaseAdjust, amplitudeAdjust, numDiscreteLevels);
 }
 GSPAT_Solution_Handler GSPAT_IBP_CWrapper_createSolution(GSPAT_Solver_Handler solver, int numPoints, int numGeometries, bool phaseOnly, float* positions, float*amplitudes, float* matStartPerPoint, float* matEndPerPoint, int matrixAlignment) {
 	//2. Call method:	

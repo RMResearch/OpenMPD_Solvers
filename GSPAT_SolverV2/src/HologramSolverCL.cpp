@@ -68,8 +68,11 @@ HologramSolverCL::~HologramSolverCL() {
 	clReleaseMemObject(directivityTexture);
 	clGetMemObjectInfo(transducerPositions, CL_MEM_REFERENCE_COUNT, sizeof(cl_uint), &count, NULL);
 	clReleaseMemObject(transducerPositions);
+	clGetMemObjectInfo(transducerNormals, CL_MEM_REFERENCE_COUNT, sizeof(cl_uint), &count, NULL);
+	clReleaseMemObject(transducerNormals);
 	//3. Delete kernels
 	clReleaseKernel(fillAllPointHologramsKernel);
+	clReleaseKernel(fillAllPointHologramsLoopKernel);
 	clReleaseKernel(powerMethodKernel);
 	clReleaseKernel(addHologramsKernel);
 	clReleaseKernel(discretiseKernel);
@@ -87,10 +90,11 @@ HologramSolverCL::~HologramSolverCL() {
 	
 }
 
-void HologramSolverCL::setBoardConfig(float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels ) {
+void HologramSolverCL::setBoardConfig(float* transducerPositions, float* transducerNormals, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels ) {
 	//0. Unload previous configuraiton
 	if (configured) {
 		clReleaseMemObject(this->transducerPositions);//cl_mem
+		clReleaseMemObject(this->transducerNormals);//cl_mem
 		clReleaseMemObject(transducerMappings);
 		clReleaseMemObject(phaseCorrections);
 		configured = false;
@@ -98,8 +102,9 @@ void HologramSolverCL::setBoardConfig(float* transducerPositions, int* transduce
 
 	}
 	this->numDiscreteLevels = numDiscreteLevels;
-	//1. create buffer with transducer positions (bit complex-> encapsulated as function):
+	//1. create buffer with transducer positions and normals (bit complex-> encapsulated as function):
 	createTransducerPositionBuffer(transducerPositions);	
+	createTransducerNormalBuffer(transducerNormals);
 	//2. Configure PIN mappings (t), phase delays (p),...
 	unsigned char* t=new unsigned char[numTransducers];//The mapping should be stored in bytes (not integers)
 	float* p=new float[numTransducers];//We store phase adjusts in radians (not degrees)
@@ -142,12 +147,34 @@ void HologramSolverCL::initializeOpenCL(){
 	clGetDeviceIDs( this->platformUsed, CL_DEVICE_TYPE_GPU, num_devices, this->devices, NULL);
 	this->deviceUsed = this->devices[num_devices-1];
 
+	// Check if the GPU has enough work group size
+	size_t groupSizeMax;
+	clGetDeviceInfo(this->deviceUsed, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &groupSizeMax, NULL);
+	if (groupSizeMax < numTransducers) {
+		sprintf(consoleLine, "GSPAT Warning: the maximum group size of your device (%d) is less than the number of transducer (%d)", (int)groupSizeMax, numTransducers);
+		GSPAT_V2::printWarning_GSPAT(consoleLine);
+	}
+	// find out how many times the kernels need to repeat the computation. 
+	numLoopsInKernel = 1; // ideally, the number of loops in the kernel should be 1...
+	bool numLoopsFound = false;
+	while (!numLoopsFound) {
+		bool dividable = (numTransducers % numLoopsInKernel == 0); // 
+		int groupSize = numTransducers / numLoopsInKernel;
+		bool sizeAvailable = (groupSize <= groupSizeMax); // GPU has limited number of working group available
+		bool powerOfTwo = (groupSize > 0) && ((groupSize & (groupSize - 1)) == 0); // make sure the group size is a power of 2. this limitation can be lifted by changing the way to compute summation but I don't know how... Ask Diego later.
+		numLoopsFound = dividable && sizeAvailable /*&& powerOfTwo*/;
+		if (!numLoopsFound) numLoopsInKernel++;
+	}
+
 	// Creates the OpenCL context, queue, event and program.
 	this->context = clCreateContext(NULL, 1, &(this->deviceUsed), NULL, NULL, NULL);
 	this->queue = clCreateCommandQueue(this->context,  this->deviceUsed, 0, NULL);
 	//Create kernels:
 	char compilerOptions[256];
-	sprintf(compilerOptions,"-cl-mad-enable -cl-finite-math-only -cl-fast-relaxed-math -cl-std=CL2.0 -D NUM_TRANSDUCERS=%d", this->numTransducers);
+	int localMemorySize = 2;
+	while (localMemorySize < numTransducers / numLoopsInKernel) { localMemorySize *= 2; }
+	numTransducers / numLoopsInKernel;
+	sprintf(compilerOptions,"-cl-mad-enable -cl-finite-math-only -cl-fast-relaxed-math -cl-std=CL2.0 -D NUM_TRANSDUCERS=%d", localMemorySize);
 	//sprintf(compilerOptions,"-D NUM_TRANSDUCERS=%d", this->numTransducers);
 	OpenCLUtilityFunctions::createProgramFromFile("hologramSolver_V2.cl", context, deviceUsed, &program, compilerOptions);
 	cl_int err;
@@ -170,6 +197,10 @@ void HologramSolverCL::initializeOpenCL(){
 		sprintf(consoleLine,"GSPAT: Couldn't create a kernel: %d", err);
 		GSPAT_V2::printError_GSPAT(consoleLine);
 	};
+	fillAllPointHologramsLoopKernel = clCreateKernel(program, "computeFandB_Loop", &err);
+	if (err < 0) {
+		GSPAT_V2::printError_GSPAT("GSPAT: Couldn't create kernel\n");
+	}
 	//Initialise clBLAS
 	err = clblasSetup();
 	if (err != CL_SUCCESS) {
@@ -186,7 +217,7 @@ void HologramSolverCL::createDirectivityTexture()
 		size_t imageWidth = 500, imageHeight=1;
 		float directivityBuffer[500], P_ref=8.02f;
 		for (size_t p = 0; p < imageWidth-1; p++)
-			directivityBuffer[p] = computeDirectivityForCosAlpha((1.0f*p) / (imageWidth-1));
+			directivityBuffer[p] = computeDirectivityForCosAlpha((1.0f*p) / (imageWidth-1), P_ref);
 		directivityBuffer[imageWidth - 1] = P_ref;
 		cl_image_format textureFormat;
 		textureFormat.image_channel_data_type = CL_FLOAT;
@@ -229,6 +260,30 @@ void HologramSolverCL:: createTransducerPositionBuffer(float* transducerPosition
 		//if (err < 0) { perror("Couldn't read hologram"); return NULL; }
 		//END DEBUG
 	}
+
+void HologramSolverCL::createTransducerNormalBuffer(float* transducerNormals) {
+	size_t numElementsInBuffer = this->numTransducers * 4;
+	float* normals = new float[numElementsInBuffer];
+	//1. Transform positions to homogenenous coordinates.
+	for (int t = 0; t < numTransducers; t++) {
+		//fill in (x,y,z)
+		memcpy(&(normals[4 * t]), &(transducerNormals[3 * t]), 3 * sizeof(float));
+		//fill in 0 as a normal indicates direction;
+		normals[4 * t + 3] = 0;
+	}
+	//2. Create an OpenCL buffer and store positions:
+	cl_int err;
+	this->transducerNormals = clCreateBuffer(context, CL_MEM_READ_WRITE, numElementsInBuffer * sizeof(float), NULL, &err);
+	if (err < 0) { GSPAT_V2::printError_GSPAT("GSPAT: Couldn't create 'transducerNormals' buffer"); return; }
+	err = clEnqueueWriteBuffer(queue, this->transducerNormals, CL_TRUE, 0, numElementsInBuffer * sizeof(float), &(normals[0]), 0, NULL, NULL);
+	if (err < 0) { GSPAT_V2::printError_GSPAT("GSPAT: Couldn't write 'transducerNormals' buffer"); return; }
+	delete normals;
+	//BEGIN DEBUG
+	//static float result [32 * 16 * 4 ];//Check it was written...
+	// err = clEnqueueReadBuffer(queue, transducerPositions, CL_TRUE, 0, 32*16*4*sizeof(float), &(result[0]),0, NULL, NULL);
+	//if (err < 0) { perror("Couldn't read hologram"); return NULL; }
+	//END DEBUG
+}
 
 void HologramSolverCL::createSolutionPool() {
 	solutionPool = new SolutionPool(this, numTransducers, context, queue);
@@ -343,37 +398,79 @@ void HologramSolverCL::updateCLBuffers(HologramSolution * hs)
 
 
 void HologramSolverCL::computeFandB(HologramSolution* solution) {
-	cl_int err;
-	//B. Run the kernel
-	size_t global_size[3] = {(size_t) numTransducers, 1,(size_t) solution->numPoints*solution->numGeometries};
-	size_t local_size[3] =  {(size_t) numTransducers, 1, 1};
-	//0. Setup inputs for the kernell (do once)
-	err = clSetKernelArg(fillAllPointHologramsKernel, 0, sizeof(cl_mem), &(transducerPositions));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 0"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 1, sizeof(cl_mem), &(solution->positions_CLBuffer));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 1"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 2, sizeof(cl_mem), &(solution->matrixStart_CLBuffer));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 2"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 3, sizeof(cl_mem), &(solution->matrixEnd_CLBuffer));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 3"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 4, sizeof(int), &(solution->numPoints));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 4"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 5, sizeof(int), &(solution->numGeometries));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 5"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 6, sizeof(cl_mem), &(this->directivityTexture));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 6"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 7, sizeof(cl_mem), &(solution->singlePointField_CLBuffer));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 7"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 8, sizeof(cl_mem), &(solution->singlePointFieldNormalised_CLBuffer));
-	if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 8"); return ; }
-		
-	//1.3. Trigger the kernell
-	cl_event dataUploaded[] = {solution->events[GSPAT_Event::POSITIONS_UPLOADED], solution->events[GSPAT_Event::MATRIX_0_UPLOADED], solution->events[GSPAT_Event::MATRIX_G_UPLOADED]};
-	cl_uint numEvents = solution->manualData ? 3 : 1;
-	err |= clEnqueueNDRangeKernel(queue, fillAllPointHologramsKernel, 3, NULL, global_size, local_size, numEvents, dataUploaded, &(solution->events[GSPAT_Event::F_AND_B_READY]));
-	if (err < 0) { 
-		GSPAT_V2::printError_GSPAT("GSPAT: computeFandB:: Couldn't enqueue the kernel"); return ; 
-	}	
+	if (numLoopsInKernel == 1) {
+		cl_int err;
+		//B. Run the kernel
+		size_t global_size[3] = { (size_t)numTransducers, 1,(size_t)solution->numPoints * solution->numGeometries };
+		size_t local_size[3] = { (size_t)numTransducers, 1, 1 };
+		//0. Setup inputs for the kernell (do once)
+		err = clSetKernelArg(fillAllPointHologramsKernel, 0, sizeof(cl_mem), &(transducerPositions));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 0"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 1, sizeof(cl_mem), &(transducerNormals));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 1"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 2, sizeof(cl_mem), &(solution->positions_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 2"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 3, sizeof(cl_mem), &(solution->matrixStart_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 3"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 4, sizeof(cl_mem), &(solution->matrixEnd_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 4"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 5, sizeof(int), &(solution->numPoints));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 5"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 6, sizeof(int), &(solution->numGeometries));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 6"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 7, sizeof(cl_mem), &(this->directivityTexture));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 7"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 8, sizeof(cl_mem), &(solution->singlePointField_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 8"); return; }
+		err = clSetKernelArg(fillAllPointHologramsKernel, 9, sizeof(cl_mem), &(solution->singlePointFieldNormalised_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 9"); return; }
+
+		//1.3. Trigger the kernell
+		cl_event dataUploaded[] = { solution->events[GSPAT_Event::POSITIONS_UPLOADED], solution->events[GSPAT_Event::MATRIX_0_UPLOADED], solution->events[GSPAT_Event::MATRIX_G_UPLOADED] };
+		cl_uint numEvents = solution->manualData ? 3 : 1;
+		err |= clEnqueueNDRangeKernel(queue, fillAllPointHologramsKernel, 3, NULL, global_size, local_size, numEvents, dataUploaded, &(solution->events[GSPAT_Event::F_AND_B_READY]));
+		if (err < 0) {
+			GSPAT_V2::printError_GSPAT("GSPAT: computeFandB:: Couldn't enqueue the kernel"); return;
+		}
+	}
+	else {
+		cl_int err;
+		//B. Run the kernel
+		size_t global_size[3] = { (size_t)numTransducers / numLoopsInKernel, 1,(size_t)solution->numPoints * solution->numGeometries };
+		size_t local_size[3] = { (size_t)numTransducers / numLoopsInKernel, 1, 1 };
+		//0. Setup inputs for the kernell (do once)
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 0, sizeof(cl_mem), &(transducerPositions));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 0"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 1, sizeof(cl_mem), &(transducerNormals));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 1"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 2, sizeof(cl_mem), &(solution->positions_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 2"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 3, sizeof(cl_mem), &(solution->matrixStart_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 3"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 4, sizeof(cl_mem), &(solution->matrixEnd_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 4"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 5, sizeof(int), &(numLoopsInKernel));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 5"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 6, sizeof(int), &(solution->numPoints));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 6"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 7, sizeof(int), &(solution->numGeometries));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 7"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 8, sizeof(cl_mem), &(this->directivityTexture));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 8"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 9, sizeof(cl_mem), &(solution->singlePointField_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 9"); return; }
+		err = clSetKernelArg(fillAllPointHologramsLoopKernel, 10, sizeof(cl_mem), &(solution->singlePointFieldNormalised_CLBuffer));
+		if (err < 0) { GSPAT_V2::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 10"); return; }
+
+		//1.3. Trigger the kernell
+		cl_event dataUploaded[] = { solution->events[GSPAT_Event::POSITIONS_UPLOADED], solution->events[GSPAT_Event::MATRIX_0_UPLOADED], solution->events[GSPAT_Event::MATRIX_G_UPLOADED] };
+		cl_uint numEvents = solution->manualData ? 3 : 1;
+		err |= clEnqueueNDRangeKernel(queue, fillAllPointHologramsLoopKernel, 3, NULL, global_size, local_size, numEvents, dataUploaded, &(solution->events[GSPAT_Event::F_AND_B_READY]));
+		if (err < 0) {
+			GSPAT_V2::printError_GSPAT("GSPAT: computeFandB:: Couldn't enqueue the kernel"); return;
+		}
+	}
+	
 	//{//DEBUG: Print input data: 
 	//	float *initialGuess = new float[solution->numPoints * 2];
 	//	float* positions = new float[solution->numPoints*solution->numGeometries * 4];
@@ -497,7 +594,7 @@ void HologramSolverCL::computeActivation(HologramSolution* solution){
 	cl_int err;
 	//B. Build hologram by adding point holograms (and applying phase to each point)
 	{
-		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)solution->numTransducers,1,1 };
+		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)solution->numTransducers/numLoopsInKernel,1,1 };
 		size_t N = solution->numTransducers*solution->numGeometries;
 		err = clSetKernelArg(addHologramsKernel, 0, sizeof(int), &(solution->numPoints));
 		if (err < 0) { sprintf(consoleLine,"GSPAT: computeActivation::Couldn't set kernel argument 0");GSPAT_V2::printWarning_GSPAT(consoleLine); return; }
@@ -526,7 +623,7 @@ void HologramSolverCL::computeActivation(HologramSolution* solution){
 void HologramSolverCL::discretise(HologramSolution* solution) {
 	cl_int err;
 	{
-		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)numTransducers,1,1 };
+		size_t global_size[3] = { (size_t)solution->numTransducers, 1,(size_t)solution->numGeometries }, local_size[3] = { (size_t)numTransducers / numLoopsInKernel,1,1 };
 		float solvePhaseOnly = solution->phaseOnly ? 1.0f : 0.0f;
 		err = clSetKernelArg(discretiseKernel, 0, sizeof(int), &numDiscreteLevels);
 		if (err < 0) { sprintf(consoleLine,"GSPAT: discretise::Couldn't set kernel argument 0"); GSPAT_V2::printWarning_GSPAT(consoleLine);return; }

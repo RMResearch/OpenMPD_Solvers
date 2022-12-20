@@ -14,7 +14,7 @@ extern "C" {
 		//Wrapper Methods for GSPAT_Solver
 		_GSPAT_Export GSPAT_Solver_Handler GSPAT_IBP_CWrapper_createSolver(int numTransducers);
 		_GSPAT_Export void GSPAT_IBP_CWrapper_destroySolver(GSPAT_Solver_Handler);
-		_GSPAT_Export void GSPAT_IBP_CWrapper_setBoardConfig(GSPAT_Solver_Handler solver, float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels = 128) ;
+		_GSPAT_Export void GSPAT_IBP_CWrapper_setBoardConfig(GSPAT_Solver_Handler solver, float* transducerPositions, float* transducerNormals, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels = 128) ;
 		_GSPAT_Export GSPAT_Solution_Handler GSPAT_IBP_CWrapper_createSolution(GSPAT_Solver_Handler solver, int numPoints, int numGeometries, bool phaseOnly, float* positions, float*amplitudes, float* matStartPerPoint, float* matEndPerPoint, int matrixAlignment=GSPAT_ColumnMajorAlignment) ;
 		_GSPAT_Export void GSPAT_IBP_CWrapper_compute(GSPAT_Solver_Handler solver, GSPAT_Solution_Handler solution) ;
 		_GSPAT_Export void GSPAT_IBP_CWrapper_releaseSolution(GSPAT_Solver_Handler solver, GSPAT_Solution_Handler solution) ;

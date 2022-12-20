@@ -16,11 +16,10 @@ void application(void) {
 	GSPAT_Solver_Handler solver = GSPATV2_CWrapper_createSolver(512);
 	while(!AsierInho_CWrapper_connectTopBottom(handler, 2, 4))
 		printf("Failed to connect to board.");
-	float transducerPositions[512 * 3], amplitudeAdjust[512];
+	float transducerPositions[512 * 3], transducerNormals[512 * 3], amplitudeAdjust[512];
 	int mappings[512], phaseDelays[512], numDiscreteLevels;
-	//AsierInho_CWrapper_readAdjustments(handler, mappings, phaseDelays);
-	AsierInho_CWrapper_readParameters(handler, transducerPositions, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
-	GSPATV2_CWrapper_setBoardConfig(solver, transducerPositions, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
+	AsierInho_CWrapper_readParameters(handler, transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
+	GSPATV2_CWrapper_setBoardConfig(solver, transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
 	//Program: Create a trap and move it with the keyboard
 	float curPos[] = { 0,0,0.1f , 1}, amplitude =1;
 	unsigned char* msg;

@@ -36,11 +36,10 @@ void application(void) {
 	
 	if(!driver->connect(2, boardIDs, matBoardToWorld))	//Device IDs to connect to
 		printf("Failed to connect to board.");
-	float transducerPositions[512 * 3], amplitudeAdjust[512];
+	float transducerPositions[512 * 3], transducerNormals[512 * 3], amplitudeAdjust[512];
 	int mappings[512], phaseDelays[512], numDiscreteLevels;
-	//driver->readAdjustments(mappings, phaseDelays);
-	driver->readParameters(transducerPositions, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
-	solver->setBoardConfig(transducerPositions, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
+	driver->readParameters(transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, &numDiscreteLevels);
+	solver->setBoardConfig(transducerPositions, transducerNormals, mappings, phaseDelays, amplitudeAdjust, numDiscreteLevels);
 	//Program: Create a trap and move it with the keyboard
 	float curPos[4 * numGeometries*numPoints];
 	float amplitude[numGeometries*numPoints] ;

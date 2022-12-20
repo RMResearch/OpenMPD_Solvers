@@ -68,6 +68,8 @@ HologramSolverCL::~HologramSolverCL() {
 	clReleaseMemObject(directivityTexture);
 	clGetMemObjectInfo(transducerPositions, CL_MEM_REFERENCE_COUNT, sizeof(cl_uint), &count, NULL);
 	clReleaseMemObject(transducerPositions);
+	clGetMemObjectInfo(transducerNormals, CL_MEM_REFERENCE_COUNT, sizeof(cl_uint), &count, NULL);
+	clReleaseMemObject(transducerNormals);
 	//3. Delete kernels
 	clReleaseKernel(fillAllPointHologramsKernel);
 	clReleaseKernel(solveIBPKernel);
@@ -83,10 +85,11 @@ HologramSolverCL::~HologramSolverCL() {
 	
 }
 
-void HologramSolverCL::setBoardConfig(float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels ) {
+void HologramSolverCL::setBoardConfig(float* transducerPositions, float* transducerNormals, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels ) {
 	//0. Unload previous configuraiton
 	if (configured) {
 		clReleaseMemObject(this->transducerPositions);//cl_mem
+		clReleaseMemObject(this->transducerNormals);//cl_mem
 		clReleaseMemObject(transducerMappings);
 		clReleaseMemObject(phaseCorrections);
 		configured = false;
@@ -96,6 +99,7 @@ void HologramSolverCL::setBoardConfig(float* transducerPositions, int* transduce
 	this->numDiscreteLevels = numDiscreteLevels;
 	//1. create buffer with transducer positions (bit complex-> encapsulated as function):
 	createTransducerPositionBuffer(transducerPositions);	
+	createTransducerNormalBuffer(transducerNormals);
 	//2. Configure PIN mappings (t), phase delays (p),...
 	unsigned char* t=new unsigned char[numTransducers];//The mapping should be stored in bytes (not integers)
 	float* p=new float[numTransducers];//We store phase adjusts in radians (not degrees)
@@ -208,6 +212,30 @@ void HologramSolverCL:: createTransducerPositionBuffer(float* transducerPosition
 		//if (err < 0) { perror("Couldn't read hologram"); return NULL; }
 		//END DEBUG
 	}
+
+void HologramSolverCL::createTransducerNormalBuffer(float* transducerNormals) {
+	size_t numElementsInBuffer = this->numTransducers * 4;
+	float* normals = new float[numElementsInBuffer];
+	//1. Transform positions to homogenenous coordinates.
+	for (int t = 0; t < numTransducers; t++) {
+		//fill in (x,y,z)
+		memcpy(&(normals[4 * t]), &(transducerNormals[3 * t]), 3 * sizeof(float));
+		//fill in 0 as a normal indicates direction;
+		normals[4 * t + 3] = 0;
+	}
+	//2. Create an OpenCL buffer and store positions:
+	cl_int err;
+	this->transducerNormals = clCreateBuffer(context, CL_MEM_READ_WRITE, numElementsInBuffer * sizeof(float), NULL, &err);
+	if (err < 0) { GSPAT_IBP::printError_GSPAT("GSPAT: Couldn't create 'transducerNormals' buffer"); return; }
+	err = clEnqueueWriteBuffer(queue, this->transducerNormals, CL_TRUE, 0, numElementsInBuffer * sizeof(float), &(normals[0]), 0, NULL, NULL);
+	if (err < 0) { GSPAT_IBP::printError_GSPAT("GSPAT: Couldn't write 'transducerNormals' buffer"); return; }
+	delete normals;
+	//BEGIN DEBUG
+	//static float result [32 * 16 * 4 ];//Check it was written...
+	// err = clEnqueueReadBuffer(queue, transducerPositions, CL_TRUE, 0, 32*16*4*sizeof(float), &(result[0]),0, NULL, NULL);
+	//if (err < 0) { perror("Couldn't read hologram"); return NULL; }
+	//END DEBUG
+}
 
 void HologramSolverCL::createSolutionPool() {
 	solutionPool = new SolutionPool(this, numTransducers, context, queue);
@@ -390,8 +418,7 @@ void HologramSolverCL::solvePhases_IBP(HologramSolution* solution){
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 1"); GSPAT_IBP::printWarning_GSPAT(consoleLine); return; }
 	err = clSetKernelArg(solveIBPKernel, 2, sizeof(cl_mem), &solution->targetAmplitudes_CLBuffer);
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 2"); GSPAT_IBP::printWarning_GSPAT(consoleLine); return; }
-	//err = clSetKernelArg(solveIBPKernel, 3, sizeof(cl_mem), &solution->singlePointField_CLBuffer);
-	err = clSetKernelArg(solveIBPKernel, 3, sizeof(cl_mem), &solution->singlePointFieldNormalised_CLBuffer);
+	err = clSetKernelArg(solveIBPKernel, 3, sizeof(cl_mem), &solution->singlePointField_CLBuffer);
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 3"); GSPAT_IBP::printWarning_GSPAT(consoleLine); return; }
 	err = clSetKernelArg(solveIBPKernel, 4, sizeof(cl_mem), &solution->finalHologramPhases_CLBuffer);
 	if (err < 0) { sprintf(consoleLine,"GSPAT: solvePhases_IBP::Couldn't set kernel argument 4"); GSPAT_IBP::printWarning_GSPAT(consoleLine);return; }
@@ -406,7 +433,7 @@ void HologramSolverCL::solvePhases_IBP(HologramSolution* solution){
 	err |= clEnqueueNDRangeKernel(queue, solveIBPKernel, 2, NULL, global_size, local_size, 1, &(solution->events[GSPAT_Event::F_AND_B_READY]), &(solution->events[GSPAT_Event::POINT_PHASES_READY]));
 	if (err < 0) { 
 		GSPAT_IBP::printError_GSPAT("GSPAT: solvePhases_GS:: Couldn't enqueue the kernel"); return; }	
-	//DEBUG
+	////DEBUG
 	//float pointsReIm_read[32 * 32 * 2];
 	//float corrections[32];
 	//float estimatedAmplitudes[32 * 32];
