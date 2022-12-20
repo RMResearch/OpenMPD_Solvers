@@ -22,6 +22,24 @@ namespace GSPAT {
 			(SEE EXPLANATION ABOUT THESE PARAMETERS IN METHOD:  Asierinho.h::readAdjustments())
 		*/
 		virtual void setBoardConfig(float* transducerPositions, int* transducerToPINMap, int* phaseAdjust, float* amplitudeAdjust, int numDiscreteLevels = 128) = 0;
+		/**
+			Generic struct to define other parameters explicit to the solver. 
+			A solver must only define this method if needed. In this case, the solver must define its own labels. 
+			USAGE: 
+			       - The client must call this method AFTER setBoardConfig
+				   - The method ust be called before any solutions are created (or computed). 
+				   - The client must know the configuraton parameters available for each solver
+					 and their associated data type (void* is used as a generic interface).
+		*/
+		struct ConfigParameter {
+			unsigned int label;
+			void * value;
+		};
+
+		virtual bool setConfigParameters(int numParameters, ConfigParameter* parameters) { 
+			//By default, no parameters are accepted. 
+			return numParameters==0; 
+		}
 
 		/**
 			Returns a solution with the appropriate configuration, which the client can then use to compute the required transducer activation.
