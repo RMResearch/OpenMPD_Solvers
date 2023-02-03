@@ -90,7 +90,7 @@ XCOPY /F /Y "$(ProjectDir)include\GSPAT_IBP_CWrapper.h" "$(LIBS_HOME)\include\$(
     <ClCompile Include="src\SolutionPool.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\AcousticLevitation\hologramSolver_IBP.cl" />
+    <None Include="src\hologramSolver_IBP.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
