@@ -10,14 +10,14 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{9CB9DDF8-151D-472F-BF06-B30BEB5950D2}</ProjectGuid>
     <RootNamespace>GSPAT_Solver</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>GSPAT_SolverNaive</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -91,7 +91,7 @@ XCOPY /F /Y "$(ProjectDir)include\GSPAT_Naive_CWrapper.h" "$(LIBS_HOME)\include\
     <ClCompile Include="src\SolutionPool.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\AcousticLevitation\hologramSolver_Naive.cl" />
+    <None Include="src\hologramSolver_Naive.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

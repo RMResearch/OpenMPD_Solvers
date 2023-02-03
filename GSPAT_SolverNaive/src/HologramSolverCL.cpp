@@ -436,16 +436,15 @@ void HologramSolverCL::solvePhases_Naive(HologramSolution* solution){
 	if (err < 0) { 
 		GSPAT_Naive::printError_GSPAT("GSPAT: solvePhases_GS:: Couldn't enqueue the kernel"); return; }	
 	//DEBUG
-	//float pointsReIm_read[32 * 32 * 2];
+	float pointsReIm_read[32 * 32 * 2];
 	//float corrections[32];
-	//float estimatedAmplitudes[32 * 32];
-	//clEnqueueReadBuffer(queue, solution->pointsReIm_CLBuffer, CL_TRUE, 0, solution->numGeometries*solution->numPoints * 2 * sizeof(float), pointsReIm_read, 0, NULL, NULL);
+	float estimatedAmplitudes[32 * 32];
+	clEnqueueReadBuffer(queue, solution->pointsReIm_CLBuffer, CL_TRUE, 0, solution->numGeometries*solution->numPoints * 2 * sizeof(float), pointsReIm_read, 1, &(solution->events[GSPAT_Event::F_AND_B_READY]), NULL);
 	//clEnqueueReadBuffer(queue, solution->correction, CL_TRUE, 0, solution->numGeometries * sizeof(float), corrections, 0, NULL, NULL);
-	//clEnqueueReadBuffer(queue, solution->amplitudesPerPoint, CL_TRUE, 0, solution->numGeometries*solution->numPoints * sizeof(float), estimatedAmplitudes, 0, NULL, NULL);
-	//sprintf(consoleLine,"Hi!\n");
+	clEnqueueReadBuffer(queue, solution->targetAmplitudes_CLBuffer, CL_TRUE, 0, solution->numGeometries*solution->numPoints * sizeof(float), estimatedAmplitudes, 1, &(solution->events[GSPAT_Event::F_AND_B_READY]), NULL);
 	float phases[512 * 32], amplitudes[512 * 32];
-	err = clEnqueueReadBuffer(queue, solution->finalHologramPhases_CLBuffer, CL_TRUE, 0, numTransducers * solution->numGeometries * sizeof(float), phases, 1, &(solution->events[GSPAT_Event::POINT_PHASES_READY]), NULL);
-	err = clEnqueueReadBuffer(queue, solution->finalHologramAmplitudes_CLBuffer, CL_TRUE, 0, numTransducers * solution->numGeometries * sizeof(float), amplitudes, 1, &(solution->events[GSPAT_Event::POINT_PHASES_READY]), NULL);
+	//err = clEnqueueReadBuffer(queue, solution->finalHologramPhases_CLBuffer, CL_TRUE, 0, numTransducers * solution->numGeometries * sizeof(float), phases, 1, &(solution->events[GSPAT_Event::POINT_PHASES_READY]), NULL);
+	//err = clEnqueueReadBuffer(queue, solution->finalHologramAmplitudes_CLBuffer, CL_TRUE, 0, numTransducers * solution->numGeometries * sizeof(float), amplitudes, 1, &(solution->events[GSPAT_Event::POINT_PHASES_READY]), NULL);
 	
 	if (err < 0) {
 		GSPAT_Naive::printError_GSPAT("GSPAT: discretise::Couldn't read message queue"); return;

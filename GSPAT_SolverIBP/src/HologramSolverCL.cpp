@@ -336,21 +336,23 @@ void HologramSolverCL::computeFandB(HologramSolution* solution) {
 	//0. Setup inputs for the kernell (do once)
 	err = clSetKernelArg(fillAllPointHologramsKernel, 0, sizeof(cl_mem), &(transducerPositions));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 0"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 1, sizeof(cl_mem), &(solution->positions_CLBuffer));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 1, sizeof(cl_mem), &(transducerNormals));
+	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 1"); return; }
+	err = clSetKernelArg(fillAllPointHologramsKernel, 2, sizeof(cl_mem), &(solution->positions_CLBuffer));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 1"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 2, sizeof(cl_mem), &(solution->matrixStart_CLBuffer));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 3, sizeof(cl_mem), &(solution->matrixStart_CLBuffer));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 2"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 3, sizeof(cl_mem), &(solution->matrixEnd_CLBuffer));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 4, sizeof(cl_mem), &(solution->matrixEnd_CLBuffer));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 3"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 4, sizeof(int), &(solution->numPoints));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 5, sizeof(int), &(solution->numPoints));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 4"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 5, sizeof(int), &(solution->numGeometries));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 6, sizeof(int), &(solution->numGeometries));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 5"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 6, sizeof(cl_mem), &(this->directivityTexture));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 7, sizeof(cl_mem), &(this->directivityTexture));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 6"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 7, sizeof(cl_mem), &(solution->singlePointField_CLBuffer));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 8, sizeof(cl_mem), &(solution->singlePointField_CLBuffer));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 7"); return ; }
-	err = clSetKernelArg(fillAllPointHologramsKernel, 8, sizeof(cl_mem), &(solution->singlePointFieldNormalised_CLBuffer));
+	err = clSetKernelArg(fillAllPointHologramsKernel, 9, sizeof(cl_mem), &(solution->singlePointFieldNormalised_CLBuffer));
 	if (err < 0) { GSPAT_IBP::printWarning_GSPAT("GSPAT: computeFandB::Couldn't set kernel argument 8"); return ; }
 		
 	//1.3. Trigger the kernell

@@ -76,7 +76,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\AcousticLevitation\hologramSolver_Naive.cl">
+    <None Include="src\hologramSolver_Naive.cl">
       <Filter>src</Filter>
     </None>
   </ItemGroup>
